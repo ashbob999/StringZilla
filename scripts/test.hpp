@@ -2,11 +2,12 @@
  *  @brief  Helper structures and functions for C++ tests.
  */
 #pragma once
-#include <fstream>  // `std::ifstream`
-#include <iostream> // `std::cout`, `std::endl`
-#include <random>   // `std::random_device`
-#include <string>   // `std::string`
-#include <vector>   // `std::vector`
+#include <fstream>     // `std::ifstream`
+#include <iostream>    // `std::cout`, `std::endl`
+#include <random>      // `std::random_device`
+#include <string>      // `std::string`
+#include <type_traits> // `std::conditional`, `std::is_signed`
+#include <vector>      // `std::vector`
 
 namespace ashvardanian {
 namespace stringzilla {
@@ -33,8 +34,19 @@ inline std::mt19937 &global_random_generator() {
 
 inline void randomize_string(char *string, std::size_t length, char const *alphabet, std::size_t cardinality) {
     using max_alphabet_size_t = std::uint8_t;
-    std::uniform_int_distribution<max_alphabet_size_t> distribution(1, static_cast<max_alphabet_size_t>(cardinality));
-    std::generate(string, string + length, [&]() -> char { return alphabet[distribution(global_random_generator())]; });
+#if defined(_MSC_VER) && !defined(__clang__)
+    // MSVC does not support std::uniform_int_distribution for char types
+    using compatible_type = std::conditional<
+        sizeof(max_alphabet_size_t) == 1,
+        std::conditional<std::is_signed<max_alphabet_size_t>::value, std::int16_t, std::uint16_t>::type,
+        max_alphabet_size_t>::type;
+#else
+    using compatible_type = max_alphabet_size_t;
+#endif
+    std::uniform_int_distribution<compatible_type> distribution(1, static_cast<max_alphabet_size_t>(cardinality));
+    std::generate(string, string + length, [&]() -> char {
+        return alphabet[static_cast<compatible_type>(distribution(global_random_generator()))];
+    });
 }
 
 inline std::string random_string(std::size_t length, char const *alphabet, std::size_t cardinality) {

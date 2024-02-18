@@ -3555,7 +3555,7 @@ SZ_PUBLIC sz_cptr_t sz_rfind_byte_avx2(sz_cptr_t h, sz_size_t h_length, sz_cptr_
 SZ_PUBLIC sz_cptr_t sz_find_avx2(sz_cptr_t h, sz_size_t h_length, sz_cptr_t n, sz_size_t n_length) {
 
     // This almost never fires, but it's better to be safe than sorry.
-    if (h_length < n_length || !n_length) return SZ_NULL;
+    if (h_length < n_length || !n_length) return SZ_NULL_CHAR;
     if (n_length == 1) return sz_find_byte_avx2(h, h_length, n);
 
     // Pick the parts of the needle that are worth comparing.
@@ -3590,7 +3590,7 @@ SZ_PUBLIC sz_cptr_t sz_find_avx2(sz_cptr_t h, sz_size_t h_length, sz_cptr_t n, s
 SZ_PUBLIC sz_cptr_t sz_rfind_avx2(sz_cptr_t h, sz_size_t h_length, sz_cptr_t n, sz_size_t n_length) {
 
     // This almost never fires, but it's better to be safe than sorry.
-    if (h_length < n_length || !n_length) return SZ_NULL;
+    if (h_length < n_length || !n_length) return SZ_NULL_CHAR;
     if (n_length == 1) return sz_rfind_byte_avx2(h, h_length, n);
 
     // Pick the parts of the needle that are worth comparing.

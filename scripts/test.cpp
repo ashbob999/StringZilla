@@ -106,8 +106,14 @@ static void test_memory_utilities() {
     char body_sz[size];
 
     auto &gen = global_random_generator();
+#if defined(_MSC_VER) && !defined(__clang__)
+    // MSVC does not support std::uniform_int_distribution for char types
+    std::uniform_int_distribution<std::int16_t> distribution {-128, 127};
+    std::generate(body_stl, body_stl + size, [&]() { return static_cast<char>(distribution(gen)); });
+#else
     std::uniform_int_distribution<char> distribution;
     std::generate(body_stl, body_stl + size, [&]() { return distribution(gen); });
+#endif
     std::copy(body_stl, body_stl + size, body_sz);
 
     // Move the contents of both strings around, validating overall

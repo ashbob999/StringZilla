@@ -27,6 +27,7 @@ CMakeFiles
 *.pyd
 .venv/*
 node_modules/
+.vs
 
 # Recommended datasets
 leipzig1M.txt

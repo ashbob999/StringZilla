@@ -455,8 +455,8 @@ class range_matches {
             return temp;
         }
 
-        bool operator!=(iterator const &other) const noexcept { return remaining_.begin() != other.remaining_.begin(); }
-        bool operator==(iterator const &other) const noexcept { return remaining_.begin() == other.remaining_.begin(); }
+        bool operator!=(iterator const &other) const noexcept { return remaining_ != other.remaining_; }
+        bool operator==(iterator const &other) const noexcept { return remaining_ == other.remaining_; }
         bool operator!=(end_sentinel_type) const noexcept { return !remaining_.empty(); }
         bool operator==(end_sentinel_type) const noexcept { return remaining_.empty(); }
     };
@@ -547,8 +547,8 @@ class range_rmatches {
             return temp;
         }
 
-        bool operator!=(iterator const &other) const noexcept { return remaining_.end() != other.remaining_.end(); }
-        bool operator==(iterator const &other) const noexcept { return remaining_.end() == other.remaining_.end(); }
+        bool operator!=(iterator const &other) const noexcept { return remaining_ != other.remaining_; }
+        bool operator==(iterator const &other) const noexcept { return remaining_ == other.remaining_; }
         bool operator!=(end_sentinel_type) const noexcept { return !remaining_.empty(); }
         bool operator==(end_sentinel_type) const noexcept { return remaining_.empty(); }
     };

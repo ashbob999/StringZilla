@@ -165,11 +165,11 @@ function(set_compiler_flags target cpp_standard target_arch)
   target_compile_options(${target} PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fno-builtin-memcpy>")
   target_compile_options(${target} PRIVATE "$<$<CXX_COMPILER_ID:GNU>:-fno-builtin-memset>")
 
-  message(STATUS "is crosscompiling = ${CMAKE_CROSSCOMPILING}")
+  message(STATUS "is crosscompiling = ${CMAKE_CROSSCOMPILING}, ${CMAKE_SYSTEM_NAME}, ${CMAKE_HOST_SYSTEM_NAME}")
 
   # Check for ${target_arch} and set it or use current system if not defined
   if("${target_arch}" STREQUAL "")
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
+    if((NOT CMAKE_CROSSCOMPILING) OR (NOT CMAKE_SYSTEM_NAME MATCHES CMAKE_HOST_SYSTEM_NAME))
       # MSVC does not have a direct equivalent to -march=native
       target_compile_options(
         ${target} PRIVATE

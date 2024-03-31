@@ -170,13 +170,13 @@ function(set_compiler_flags target cpp_standard target_arch)
     # MSVC does not have a direct equivalent to -march=native
     target_compile_options(
       ${target} PRIVATE
-      "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<CXX_COMPILER_ID:AppleClang>>>:-march=native>"
+      "$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-march=native>"
       "$<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>")
   else()
     target_compile_options(
       ${target}
       PRIVATE
-      "$<$<AND:$<CXX_COMPILER_ID:GNU>,$<NOT:$<CXX_COMPILER_ID:AppleClang>>>:-march=${target_arch}>"
+      "$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-march=${target_arch}>"
       "$<$<CXX_COMPILER_ID:MSVC>:/arch:${target_arch}>")
   endif()
 

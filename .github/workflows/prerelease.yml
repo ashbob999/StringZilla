@@ -281,6 +281,7 @@ jobs:
             -DSTRINGZILLA_BUILD_BENCHMARK=1 \
             -DSTRINGZILLA_BUILD_TEST=1
           cmake --build build_artifacts --config RelWithDebInfo
+          lscpu
       - name: Test C++
         run: build_artifacts/stringzilla_test_cpp17
       - name: Test on Real World Data

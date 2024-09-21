@@ -75,7 +75,7 @@ jobs:
   build_wheels:
     name: Build Python ${{ matrix.python-version }} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: versioning
+    # needs: versioning
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -171,7 +171,7 @@ jobs:
   create_linux_deb_package:
     name: Create Debian Package for ${{ matrix.arch }}
     runs-on: ubuntu-22.04
-    needs: versioning
+    #needs: versioning
     env:
       CC: clang-16
       CXX: clang++-16
@@ -253,7 +253,7 @@ jobs:
   create_windows_dll_library:
     name: Create Dll Library for Windows ${{ matrix.arch }}
     runs-on: windows-2022
-    needs: versioning
+    #needs: versioning
     strategy:
       fail-fast: false
       matrix:
@@ -298,7 +298,7 @@ jobs:
   create_macos_library:
     name: Create Library for MacOS ${{ matrix.arch }}
     runs-on: macos-latest
-    needs: versioning
+    #needs: versioning
     strategy:
       fail-fast: false
       matrix:

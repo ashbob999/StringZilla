@@ -333,6 +333,7 @@ function (set_compiler_flags target cpp_standard target_arch compiler_id)
         # Only use the current system if we are not cross compiling
 		message(STATUS "${CMAKE_SYSTEM_PROCESSOR}, ${CMAKE_HOST_SYSTEM_PROCESSOR}")
         if (((NOT MSVC) AND (NOT CMAKE_CROSSCOMPILING)) OR (CMAKE_SYSTEM_PROCESSOR MATCHES CMAKE_HOST_SYSTEM_PROCESSOR))
+			message(STATUS "in native arch")
             if (compiler_id STREQUAL "NVIDIA")
                 # For NVCC, pass native flag to host compiler
                 include(CheckCXXCompilerFlag)
@@ -348,7 +349,9 @@ function (set_compiler_flags target cpp_standard target_arch compiler_id)
                 endif ()
             else ()
                 # MSVC does not have a direct equivalent to -march=native
+				message(STATUS "msvc natove arch")
                 if (SZ_IS_64BIT_ARM_)
+					messgae(STATUS "msvc native arch arm set")
                     target_compile_options(${target} PRIVATE "/arch:armv8.0")
                 else ()
                     target_compile_options(${target} PRIVATE "/arch:AVX2")

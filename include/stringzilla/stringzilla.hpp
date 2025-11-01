@@ -1334,7 +1334,9 @@ class basic_string_slice {
         return assign({other.data(), other.size()});
     }
 
-    operator std::string() const { return {data(), size()}; }
+#if !SZ_AVOID_STL_STRING
+    operator std::basic_string<mutable_char_type>() const { return {data(), size()}; }
+#endif // !SZ_AVOID_STL_STRING
 
     /**
      *  @brief Formatted output function for compatibility with STL's `std::basic_ostream`.
@@ -1901,6 +1903,49 @@ class basic_string_slice {
     }
 
 #pragma endregion
+#pragma region Char Arguments
+
+    /**
+     *  @brief Find the first occurrence of a character equal to @p `ch`.
+     *  @param[in] skip The number of first characters to be skipped.
+     */
+    size_type find_first_of(char_type ch, size_type skip = 0) const noexcept {
+        auto ptr = sz_find_byte(start_ + skip, length_ - skip, &ch);
+        return ptr ? ptr - start_ : npos;
+    }
+
+    /**
+     *  @brief Find the first occurrence of a character not equal to @p `ch`.
+     *  @param[in] skip The number of first characters to be skipped.
+     */
+    size_type find_first_not_of(char_type ch, size_type skip = 0) const noexcept {
+        // TODO: Add specific backend function.
+        auto ptr = sz_find_byte_not_from(start_ + skip, length_ - skip, &ch, 1);
+        return ptr ? ptr - start_ : npos;
+    }
+
+    /**
+     *  @brief Find the last occurrence of a character equal to @p `ch`.
+     *  @param[in] until The offset of the last character to be considered.
+     */
+    size_type find_last_of(char_type ch, size_type until = npos) const noexcept {
+        auto len = sz_min_of_two(until + 1, length_);
+        auto ptr = sz_rfind_byte(start_, len, &ch);
+        return ptr ? ptr - start_ : npos;
+    }
+
+    /**
+     *  @brief Find the last occurrence of a character not equal to @p `ch`.
+     *  @param[in] until The offset of the last character to be considered.
+     */
+    size_type find_last_not_of(char_type ch, size_type until = npos) const noexcept {
+        // TODO: Add specific backend function.
+        auto len = sz_min_of_two(until + 1, length_);
+        auto ptr = sz_rfind_byte_not_from(start_, len, &ch, 1);
+        return ptr ? ptr - start_ : npos;
+    }
+
+#pragma endregion
 #pragma region Slicing
 
     /**
@@ -2249,9 +2294,11 @@ class basic_string {
     basic_string(std::string const &other) noexcept(false) : basic_string(other.data(), other.size()) {}
     basic_string &operator=(std::string const &other) noexcept(false) { return assign({other.data(), other.size()}); }
 
+#if !SZ_AVOID_STL_STRING
     // As we are need both `data()` and `size()`, going through `operator string_view()`
     // and `sz_string_unpack` is faster than separate invocations.
-    operator std::string() const { return view(); }
+    operator std::basic_string<char_type>() const { return view(); }
+#endif // !SZ_AVOID_STL_STRING
 
     /**
      *  @brief Formatted output function for compatibility with STL's `std::basic_ostream`.
@@ -2267,7 +2314,10 @@ class basic_string {
 
     basic_string(std::string_view other) noexcept(false) : basic_string(other.data(), other.size()) {}
     basic_string &operator=(std::string_view other) noexcept(false) { return assign({other.data(), other.size()}); }
-    operator std::string_view() const noexcept { return view(); }
+
+#if !SZ_AVOID_STL_STRING
+    operator std::basic_string_view<char_type>() const noexcept { return view(); }
+#endif // !SZ_AVOID_STL_STRING
 
 #endif
 
@@ -2429,6 +2479,8 @@ class basic_string {
         sz_string_erase(&string_, size() - n, n);
     }
 
+#if !SZ_AVOID_STL
+
     /**  @brief Added for STL compatibility. */
     basic_string substr() const noexcept { return *this; }
 
@@ -2454,6 +2506,8 @@ class basic_string {
     size_type copy(value_type *destination, size_type count, size_type skip = 0) const noexcept(false) {
         return view().copy(destination, count, skip);
     }
+
+#endif // !SZ_AVOID_STL
 
 #pragma endregion
 
@@ -2531,19 +2585,29 @@ class basic_string {
 #else
 
     /**  @brief Checks if the string is not equal to the other string. */
+    bool operator!=(basic_string other) const noexcept { return !operator==(other); }
     bool operator!=(string_view other) const noexcept { return !operator==(other); }
+    bool operator!=(const_pointer other) const noexcept { return !operator==(other); }
 
     /**  @brief Checks if the string is lexicographically smaller than the other string. */
+    bool operator<(basic_string other) const noexcept { return compare(other.view()) == sz_less_k; }
     bool operator<(string_view other) const noexcept { return compare(other) == sz_less_k; }
+    bool operator<(const_pointer other) const noexcept { return compare(other) == sz_less_k; }
 
     /**  @brief Checks if the string is lexicographically equal or smaller than the other string. */
+    bool operator<=(basic_string other) const noexcept { return compare(other) != sz_greater_k; }
     bool operator<=(string_view other) const noexcept { return compare(other) != sz_greater_k; }
+    bool operator<=(const_pointer other) const noexcept { return compare(other) != sz_greater_k; }
 
     /**  @brief Checks if the string is lexicographically greater than the other string. */
+    bool operator>(basic_string other) const noexcept { return compare(other.view()) == sz_greater_k; }
     bool operator>(string_view other) const noexcept { return compare(other) == sz_greater_k; }
+    bool operator>(const_pointer other) const noexcept { return compare(other) == sz_greater_k; }
 
     /**  @brief Checks if the string is lexicographically equal or greater than the other string. */
+    bool operator>=(basic_string other) const noexcept { return compare(other.view()) != sz_less_k; }
     bool operator>=(string_view other) const noexcept { return compare(other) != sz_less_k; }
+    bool operator>=(const_pointer other) const noexcept { return compare(other) != sz_less_k; }
 
 #endif
 
@@ -2764,6 +2828,39 @@ class basic_string {
      */
     size_type find_last_not_of(const_pointer other, size_type until, size_type count) const noexcept {
         return view().find_last_not_of(other, until, count);
+    }
+
+#pragma endregion
+#pragma region Char Arguments
+
+    /**
+     *  @brief Find the first occurrence of a character equal to @p `ch`.
+     *  @param[in] skip The number of first characters to be skipped.
+     */
+    size_type find_first_of(char_type ch, size_type skip = 0) const noexcept { return view().find_first_of(ch, skip); }
+
+    /**
+     *  @brief Find the first occurrence of a character not equal to @p `ch`.
+     *  @param[in] skip The number of first characters to be skipped.
+     */
+    size_type find_first_not_of(char_type ch, size_type skip = 0) const noexcept {
+        return view().find_first_not_of(ch, skip);
+    }
+
+    /**
+     *  @brief Find the last occurrence of a character equal to @p `ch`.
+     *  @param[in] until The offset of the last character to be considered.
+     */
+    size_type find_last_of(char_type ch, size_type until = npos) const noexcept {
+        return view().find_last_of(ch, until);
+    }
+
+    /**
+     *  @brief Find the last occurrence of a character no equal to @p `ch`.
+     *  @param[in] until The offset of the last character to be considered.
+     */
+    size_type find_last_not_of(char_type ch, size_type until = npos) const noexcept {
+        return view().find_last_not_of(ch, until);
     }
 
 #pragma endregion
